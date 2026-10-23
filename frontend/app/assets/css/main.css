@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Дизайн-токены (см. tailwind.config.ts). Каналы RGB без rgb(), чтобы Tailwind мог добавить прозрачность */
+:root {
+  --bg: 236 236 236; /* #ececec — светло-серый фон, как на сайте-образце */
+  --panel: 250 250 250; /* #fafafa */
+  --raised: 228 228 228; /* #e4e4e4 */
+  --line: 214 200 203; /* #d6c8cb — серый с красноватым оттенком */
+  --ink: 26 26 26; /* #1a1a1a */
+  --muted: 110 110 116; /* #6e6e74 */
+  --accent: 110 10 30; /* #6e0a1e — бордовый */
+  --ok: 22 150 70; /* #169646 — темнее, чтобы читался на светлом */
+  --bad: 200 30 45; /* #c81e2d */
+  --easy: 0 145 128; /* #009180 */
+  --medium: 190 132 0; /* #be8400 — жёлтый на светлом не читается, берём горчичный */
+  --hard: 215 30 70; /* #d71e46 */
+
+  color-scheme: light;
+}
+
+/* Заголовки — квадратный «технический» Russo One, остальной текст — Jura (подключены в nuxt.config.ts) */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    @apply font-display font-normal;
+  }
+}
+
+/* Тёмная тема — включается переключателем в шапке (атрибут data-theme на <html>, см. useTheme) */
+:root[data-theme='dark'] {
+  --bg: 26 26 26; /* #1a1a1a */
+  --panel: 40 40 40; /* #282828 */
+  --raised: 55 55 55; /* #373737 */
+  --line: 62 62 62; /* #3e3e3e */
+  --ink: 239 241 246; /* #eff1f6 */
+  --muted: 155 156 160; /* #9b9ca0 */
+  --accent: 200 16 46; /* #c8102e — на тёмном бордовый сливается, берём ярче */
+  --ok: 44 187 93; /* #2cbb5d */
+  --bad: 239 71 67; /* #ef4743 */
+  --easy: 0 184 163; /* #00b8a3 */
+  --medium: 255 192 30; /* #ffc01e */
+  --hard: 255 55 95; /* #ff375f */
+
+  color-scheme: dark;
+}
+
+/* Фон страницы задаём на body, а не в app.vue: так он есть и под контентом, и при оверскролле */
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--ink));
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Тонкие скроллбары в панелях — как в IDE, иначе светлые системные режут тёмный интерфейс */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--raised));
+  border-radius: 4px;
+}

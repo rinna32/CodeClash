@@ -1,0 +1,138 @@
+### Готовые запросы к API — в RustRover жми ▶ слева от запроса.
+### Перед этим запусти сервер: cargo run
+### Запросы с токеном: сначала выполни «Регистрация» или «Вход» — токен сохранится сам.
+
+@host = http://127.0.0.1:8000/api
+
+### ── Сервер жив ──
+GET {{host}}/health
+
+### ───────────────────────── Аккаунт ─────────────────────────
+
+### Регистрация (имя 3–20 символов, пароль от 6)
+POST {{host}}/auth/register
+Content-Type: application/json
+
+{ "username": "demo", "password": "demo-pass-123" }
+
+> {% client.global.set("token", response.body.token); %}
+
+### Вход
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{ "username": "demo", "password": "demo-pass-123" }
+
+> {% client.global.set("token", response.body.token); %}
+
+### Кто я + рейтинг по режимам
+GET {{host}}/me
+Authorization: Bearer {{token}}
+
+### Без токена → 401
+GET {{host}}/me
+
+### ───────────────────────── Задачи ─────────────────────────
+
+### Все задачи
+GET {{host}}/tasks
+
+### Фильтр: Python, лёгкие
+GET {{host}}/tasks?mode=python&difficulty=easy
+
+### Одна задача: условие, примеры, имена аргументов
+GET {{host}}/tasks/1
+
+### Тренировка, Run: верное решение → accepted
+POST {{host}}/tasks/1/run
+Content-Type: application/json
+
+{
+  "code": "function solve(nums, target) {\n  const seen = new Map()\n  for (let i = 0; i < nums.length; i++) {\n    if (seen.has(target - nums[i])) return [seen.get(target - nums[i]), i]\n    seen.set(nums[i], i)\n  }\n}"
+}
+
+### Тренировка, Submit с синтаксической ошибкой → runtime_error
+POST {{host}}/tasks/4/submit
+Content-Type: application/json
+
+{ "code": "def solve(s)\n    return True" }
+
+### ───────────────────────── Нейросеть ─────────────────────────
+
+### Подключена ли нейросеть
+GET {{host}}/llm/status
+
+### Сгенерировать задачу (нужен LLM_API_KEY в .env; ждать до минуты)
+POST {{host}}/tasks/generate
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "mode": "python", "difficulty": "easy" }
+
+### ───────────────────────── Матч с ботом ─────────────────────────
+
+### Начать матч (bot_level: novice / middle / senior)
+POST {{host}}/matches
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "mode": "javascript", "difficulty": "easy", "bot_level": "middle" }
+
+> {% client.global.set("match", response.body.id); %}
+
+### Состояние матча: таймер, прогресс бота (подожди 3 с обратного отсчёта)
+GET {{host}}/matches/{{match}}
+Authorization: Bearer {{token}}
+
+### Run в матче — только открытые тесты, в зачёт не идёт
+POST {{host}}/matches/{{match}}/run
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "code": "function solve(nums, target) { return [0, 1] }" }
+
+### Submit в матче — если все тесты прошли раньше бота, это победа
+POST {{host}}/matches/{{match}}/submit
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "function solve(nums, target) {\n  const seen = new Map()\n  for (let i = 0; i < nums.length; i++) {\n    if (seen.has(target - nums[i])) return [seen.get(target - nums[i]), i]\n    seen.set(nums[i], i)\n  }\n}"
+}
+
+### Сдаться → поражение
+POST {{host}}/matches/{{match}}/resign
+Authorization: Bearer {{token}}
+
+### Ответ после матча: в GET /matches/{id} поле solution (только когда матч закончился)
+GET {{host}}/matches/{{match}}
+Authorization: Bearer {{token}}
+
+### Разбор кода нейросетью после матча (нужен LLM_API_KEY; второй раз — из базы)
+POST {{host}}/matches/{{match}}/review
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "function solve(nums, target) {\n  for (let i = 0; i < nums.length; i++)\n    for (let j = 0; j < nums.length; j++)\n      if (nums[i] + nums[j] === target) return [i, j]\n}"
+}
+
+### Тренировка: сдаться и посмотреть эталон
+GET {{host}}/tasks/4/solution
+Authorization: Bearer {{token}}
+
+### Тренировка: разбор кода нейросетью
+POST {{host}}/tasks/4/review
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "code": "def solve(s):\n    return s == s[::-1]"
+}
+
+### История моих матчей
+GET {{host}}/me/matches
+Authorization: Bearer {{token}}
+
+### Таблица лидеров режима
+GET {{host}}/leaderboard?mode=javascript
